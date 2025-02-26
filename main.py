@@ -83,6 +83,6 @@ def delete_post(post_id: int):
     post = find_post(post_id)
     if post:
         my_posts.remove(post)
-        return {"data": "Post deleted successfully"}
-
+        #return {"data": "Post deleted successfully"}
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
