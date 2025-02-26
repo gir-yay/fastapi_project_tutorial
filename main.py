@@ -49,3 +49,17 @@ async def create_post(post: Post):
     #print(payload)
     #return {"message": f"title: {payload['title']}, content: {payload['content']}"}
 
+
+
+def find_post(post_id: int):
+    for post in my_posts:
+        if post["id"] == post_id:
+            return post
+    return None
+
+@app.get("/posts/{post_id}")
+def get_post(post_id: int):
+    post = find_post(post_id)
+    if post:
+        return {"data": post}
+    return {"error": "Post not found"}
