@@ -57,6 +57,13 @@ def find_post(post_id: int):
             return post
     return None
 
+
+@app.get("/posts/latest")
+def get_latest_post():
+    if my_posts:
+        return {"data": my_posts[-1]}
+    return {"error": "No posts available"}
+
 @app.get("/posts/{post_id}")
 def get_post(post_id: int):
     post = find_post(post_id)
