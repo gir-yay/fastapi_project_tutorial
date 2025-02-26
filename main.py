@@ -75,3 +75,14 @@ def get_post(post_id: int, response: Response):
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
 
     #return {"error": "Post not found"}
+
+
+
+@app.delete("/posts/{post_id}" )
+def delete_post(post_id: int):
+    post = find_post(post_id)
+    if post:
+        my_posts.remove(post)
+        return {"data": "Post deleted successfully"}
+
+    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
