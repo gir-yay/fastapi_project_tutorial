@@ -86,3 +86,15 @@ def delete_post(post_id: int):
         #return {"data": "Post deleted successfully"}
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
+
+
+
+@app.put("/posts/{post_id}")
+def update_post(post_id: int, post: Post):
+    old_post = find_post(post_id)
+    if old_post:
+        post_index = my_posts.index(old_post)
+        post = post.dict()
+        my_posts[post_index] = post
+        return {"data": post}
+    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
