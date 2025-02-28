@@ -20,7 +20,7 @@ async def root():
     return {"message": "Hello World "}
 
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts(db : Session = Depends(get_db)):
     posts = db.query(models.Posty).all()
     return  posts
@@ -28,7 +28,7 @@ def get_posts(db : Session = Depends(get_db)):
 
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=List[schemas.PostResponse])
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post: schemas.Post , db: Session = Depends(get_db)):
     #new_post = models.Posty(title=post.title, content=post.content, published=post.published)
     new_post = models.Posty(**post.dict())
