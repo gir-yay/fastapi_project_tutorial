@@ -1,85 +1,17 @@
-from fastapi import FastAPI, Response, status, HTTPException, Depends
-from typing import  List
-from . import models, schemas , utils
-from .database import engine , SessionLocal, get_db
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
+from . import models
+from .database import engine
+from .routers import post, user
 
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-
-@app.get("/posts", response_model=List[schemas.PostResponse])
-def get_posts(db : Session = Depends(get_db)):
-    posts = db.query(models.Posty).all()
-    return  posts
+app.include_router(post.router)
+app.include_router(user.router) 
 
 
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: schemas.Post , db: Session = Depends(get_db)):
-    #new_post = models.Posty(title=post.title, content=post.content, published=post.published)
-    new_post = models.Posty(**post.dict())
-    db.add(new_post)
-    db.commit()
-    db.refresh(new_post)
-    return new_post
 
-
-@app.get("/posts/{post_id}", response_model=schemas.PostResponse)
-def get_post(post_id: int, response: Response , db: Session = Depends(get_db)):
-    post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
-    if post:
-        return post
-    
-    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
-
-
-
-
-@app.delete("/posts/{post_id}" , status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int , db: Session = Depends(get_db)):
-    post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
-    if post:
-        db.delete(post)
-        #post.delete(synchronize_session=False)
-        db.commit()
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
-
-
-
-@app.put("/posts/{post_id}")
-def update_post(post_id: int, post: schemas.Post, db: Session = Depends(get_db)):
-    updated_post = db.query(models.Posty).filter(models.Posty.id == post_id)
-    if updated_post.first():
-        updated_post.update(post.dict() , synchronize_session=False)
-        db.commit()
-        return  updated_post.first()
-    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
-
-
-
-
-@app.post("/users",  status_code=status.HTTP_201_CREATED , response_model=schemas.UserResponse)
-def create_user(user : schemas.UserCreate , db: Session = Depends(get_db)):
-
-    user.password = utils.hash_password(user.password)
-
-    new_user = models.Users(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
-
-@app.get("/users/{user_id}", response_model=schemas.UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.Users).filter(models.Users.id == user_id).first()
-    if user:
-        return user
-    
-    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="User not found")
