@@ -29,7 +29,7 @@ def get_posts(db : Session = Depends(get_db)):
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: schemas.Post , db: Session = Depends(get_db) ):
+def create_posts(post: schemas.Post , db: Session = Depends(get_db)):
     #new_post = models.Posty(title=post.title, content=post.content, published=post.published)
     new_post = models.Posty(**post.dict())
     db.add(new_post)
@@ -38,7 +38,7 @@ def create_posts(post: schemas.Post , db: Session = Depends(get_db) ):
     return new_post
 
 
-@app.get("/posts/{post_id}")
+@app.get("/posts/{post_id}", response_model=schemas.PostResponse)
 def get_post(post_id: int, response: Response , db: Session = Depends(get_db)):
     post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
     if post:
