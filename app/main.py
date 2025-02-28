@@ -22,24 +22,6 @@ class Post(BaseModel):
     published: bool=False
     
 
-while True:
-    try:
-        conn = psycopg2.connect(
-            dbname="fastapi_db",
-            user="user",
-            password="secret",
-            host="localhost",
-            port="5432",
-            cursor_factory=RealDictCursor
-        )
-
-        cursor = conn.cursor()
-        break
-
-    except Exception as e:
-        print(e)
-        time.sleep(5)
-
 
 
 @app.get("/")
@@ -48,27 +30,29 @@ async def root():
 
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute("SELECT * FROM posts")
-    posts = cursor.fetchall()
+def get_posts(db : Session = Depends(get_db)):
+    posts = db.query(models.Posty).all()
     return {"data": posts}
 
 
 
+
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: Post):
-    cursor.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * ", (post.title, post.content, post.published))
-    new_post = cursor.fetchone()
-    conn.commit()   
+def create_posts(post: Post , db: Session = Depends(get_db) ):
+    #new_post = models.Posty(title=post.title, content=post.content, published=post.published)
+    new_post = models.Posty(**post.dict())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return {"data": new_post}
 
 
 
 
+
 @app.get("/posts/{post_id}")
-def get_post(post_id: int, response: Response):
-    cursor.execute("SELECT * FROM posts WHERE id = %s", (post_id,))
-    post = cursor.fetchone()
+def get_post(post_id: int, response: Response , db: Session = Depends(get_db)):
+    post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
     if post:
         return {"data": post}
     
@@ -78,21 +62,22 @@ def get_post(post_id: int, response: Response):
 
 
 @app.delete("/posts/{post_id}" , status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int):
-    cursor.execute("DELETE FROM posts WHERE id = %s returning *", (post_id,))
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
-    conn.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-    #raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
+def delete_post(post_id: int , db: Session = Depends(get_db)):
+    post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
+    if post:
+        db.delete(post)
+        #post.delete(synchronize_session=False)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
 
 
 
 @app.put("/posts/{post_id}")
-def update_post(post_id: int, post: Post):
-    cursor.execute("UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *", (post.title, post.content, post.published, post_id))
-    updated_post = cursor.fetchone()
-    if updated_post:
-        conn.commit()
-        return {"data": updated_post}
+def update_post(post_id: int, post: Post, db: Session = Depends(get_db)):
+    updated_post = db.query(models.Posty).filter(models.Posty.id == post_id)
+    if updated_post.first():
+        updated_post.update(post.dict() , synchronize_session=False)
+        db.commit()
+        return {"data": updated_post.first()}
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
