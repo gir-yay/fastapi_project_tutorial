@@ -1,10 +1,5 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
-from fastapi.params import Body
-from typing import Optional, List
-from random import randrange
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
+from typing import  List
 from . import models, schemas
 from .database import engine , SessionLocal, get_db
 from sqlalchemy.orm import Session
@@ -12,12 +7,6 @@ from sqlalchemy.orm import Session
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World "}
 
 
 @app.get("/posts", response_model=List[schemas.PostResponse])
@@ -69,3 +58,14 @@ def update_post(post_id: int, post: schemas.Post, db: Session = Depends(get_db))
         db.commit()
         return  updated_post.first()
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Post not found")
+
+
+
+
+@app.post("/users",  status_code=status.HTTP_201_CREATED , response_model=schemas.UserResponse)
+def create_user(user : schemas.UserCreate , db: Session = Depends(get_db)):
+    new_user = models.Users(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
