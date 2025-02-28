@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
-from typing import Optional
+from typing import Optional, List
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -28,7 +28,7 @@ def get_posts(db : Session = Depends(get_db)):
 
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=List[schemas.PostResponse])
 def create_posts(post: schemas.Post , db: Session = Depends(get_db)):
     #new_post = models.Posty(title=post.title, content=post.content, published=post.published)
     new_post = models.Posty(**post.dict())
