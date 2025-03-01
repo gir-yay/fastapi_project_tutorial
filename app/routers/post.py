@@ -10,6 +10,7 @@ router = APIRouter()
 @router.get("/posts", response_model=List[schemas.PostResponse])
 def get_posts(db : Session = Depends(get_db)):
     posts = db.query(models.Posty).all()
+    #posts = db.query(models.Posty).filter(models.Posty.user_id == current_user.id).all()
     return  posts
 
 
