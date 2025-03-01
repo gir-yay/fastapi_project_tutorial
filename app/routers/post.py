@@ -39,9 +39,10 @@ def get_post(post_id: int, response: Response , db: Session = Depends(get_db)):
 @router.delete("/posts/{post_id}" , status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int , db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     post = db.query(models.Posty).filter(models.Posty.id == post_id).first()
-    if post.user_id != current_user.id:
-        raise HTTPException(status_code= status.HTTP_403_FORBIDDEN , detail="You are not allowed to delete this post")
+    
     if post:
+        if post.user_id != current_user.id:
+            raise HTTPException(status_code= status.HTTP_403_FORBIDDEN , detail="You are not allowed to delete this post")
         db.delete(post)
         #post.delete(synchronize_session=False)
         db.commit()
