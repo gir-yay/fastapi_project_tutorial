@@ -13,8 +13,8 @@ pip install passlib[bcrypt]
 pip install python-jose[cryptography] 
 
 
-
-
+#### Run the app
+uvicorn app.main:app --reload
 
 
 
