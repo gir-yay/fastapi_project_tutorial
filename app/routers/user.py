@@ -1,6 +1,6 @@
 from fastapi import  Response, status, HTTPException, Depends, APIRouter
 from typing import  List
-from .. import models, schemas , utils
+from .. import models, schemas , utils, oauth2
 from ..database import  get_db
 from sqlalchemy.orm import Session
 
@@ -23,7 +23,7 @@ def create_user(user : schemas.UserCreate , db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=schemas.UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     user = db.query(models.Users).filter(models.Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND , detail="Invalid Credentials")
