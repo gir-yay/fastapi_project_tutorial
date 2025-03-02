@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+from typing import Annotated, Optional
+from pydantic.types import conint
 
 
 class UserCreate(BaseModel):
@@ -27,7 +28,7 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool=False
-    owner : UserResponse
+    
 
 
 class CreatePost(Post):
@@ -39,6 +40,7 @@ class PostResponse(BaseModel):
     title : str
     content : str
     published : bool
+    owner : UserResponse
     #created_at : datetime
 
     class Config:
@@ -58,4 +60,7 @@ class TokenData(BaseModel):
     id: Optional[int] = None
     
 
-
+class Vote(BaseModel):
+    post_id: int
+    #dir: conint(le=1)
+    dir: Annotated[int, Field(le=1)]
