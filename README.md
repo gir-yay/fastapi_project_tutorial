@@ -16,6 +16,7 @@ pip install alembic
 #### using alembic
 alembic init alembec
 alembic revision -m " sth like a commit msg here to describe what u did in the revision"
+alembic revision --autogenerate -m "an auto-generated revision"
 alembic upgrade head
 
 ##### to downgrade
