@@ -3,15 +3,24 @@ from typing import  List, Optional
 from .. import models, schemas , oauth2
 from ..database import  get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+
 
 
 router = APIRouter()
 
-@router.get("/posts", response_model=List[schemas.PostResponse])
+#@router.get("/posts", response_model=List[schemas.PostResponse])
+@router.get("/posts", response_model=List[schemas.PostVote])
 def get_posts(db : Session = Depends(get_db), limit: int = 3, skip : int = 0, search: Optional[str] = ""):
     posts = db.query(models.Posty).filter(models.Posty.title.contains(search)).limit(limit).offset(skip).all()
     #posts = db.query(models.Posty).filter(models.Posty.user_id == current_user.id).all()
-    return  posts
+
+
+    results = db.query(models.Posty, func.count(models.Votes.post_id).label("votes")).join(models.Votes, models.Votes.post_id == models.Posty.id , isouter=True).group_by(models.Posty.id).all()
+
+    #return  posts
+    #return  [{"post": post.__dict__, "votes": votes} for post, votes in results]
+    return  [{"post": post, "votes": votes} for post, votes in results]
 
 
 

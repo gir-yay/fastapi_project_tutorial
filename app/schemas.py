@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Annotated, Optional
-from pydantic.types import conint
 
 
 class UserCreate(BaseModel):
@@ -64,3 +63,13 @@ class Vote(BaseModel):
     post_id: int
     #dir: conint(le=1)
     dir: Annotated[int, Field(le=1)]
+
+
+
+class PostVote(BaseModel):
+    post : PostResponse
+    votes : int
+
+    class Config:
+        orm_mode = True
+
