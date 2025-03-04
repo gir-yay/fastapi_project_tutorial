@@ -36,3 +36,8 @@ uvicorn app.main:app --reload
 #### killing the processes of the app runing
 tasklist /FI "IMAGENAME eq python.exe"
 taskkill /PID 24508  /F
+
+
+
+#### Build a docker image
+ docker build -t fastapi . 
