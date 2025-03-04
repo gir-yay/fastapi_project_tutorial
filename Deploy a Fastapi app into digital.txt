@@ -1,0 +1,214 @@
+# Deploy a Fastapi app into digitalocean / an ubuntu server
+sudo apt update && sudo apt upgrade -y
+python3 --version 
+# If python is installed then check if pip is installed
+sudo apt install python3-pip
+sudo pip3 install virtualenv
+
+# Postgres
+sudo apt install postgresql postgresql-contrib -y
+
+psql -U postgres
+# We get the error peer authentication failed
+# Get the list of all users in the machine
+sudo cat /etc/passwd
+su - postgres
+psql -U postgres
+
+# Create a password for the postgres user in postgres
+# In the postgres terminal run 
+\password postgres
+# Enter password
+# Enter it again
+\q 
+exit
+# Back to the root user
+cd /etc/postgresql/12/main
+ls
+sudo nano postgresql.conf
+# In the connection and authentication section add the following line
+listen_addresses = '*'
+# Save and quit
+sudo nano pg_hba.conf
+# Scroll down
+# Change peer to md5 and skip the one for replication
+# Change also the ipv4 for local connections to 0.0.0.0/0
+# And the ipv6 to ::/0
+# Quit and save
+# Restart PostgreSQL
+systemctl restart postgresql
+psql -U postgres
+\q
+
+# Create a non Root user
+cd
+adduser gg
+usermod -aG sudo gg
+# Reconnect with ssh as gg (the newly user created)
+
+cd
+mkdir app
+cd app
+virtualenv venv 
+ls la
+source venv/bin/activate
+deactivate
+mkdir src 
+cd src/
+git clone "url" .
+cd ../
+source venv/bin/activate
+cd src
+pip install -r requirements.txt
+# Running into issues , missing libraries
+deactivate
+sudo apt install libpq-dev
+python3 -m pip install --upgrade pip
+# Activate the virtual env again
+pip install -r requirements.txt
+
+# Run the app
+uvicorn app.main:app
+
+# Caused errors because of missing env var
+# Create a .env file and export it
+cd 
+touch .env
+set -o allexport; source /home/gg/.env ; set +o allexport
+# Persist through reboot
+cd
+ls -la
+nano .profile
+# Paste "set -o allexport; source /home/gg/.env ; set +o allexport"
+# in the bottom of the file
+printenv
+
+# Create a new database in postgresql
+psql -U postgres
+create database fastapi;
+\l
+\q
+
+# Fill the database with alimbic
+cd app/src
+ls
+alembic upgrade head
+uvicorn app.main:app
+
+# We need to allow any ip to access the app
+uvicorn --host 0.0.0.0 app.main:app
+
+# Use gunicorn
+pip install gunicorn
+pip install httptools
+pip install uvloop
+
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+# Check the gunicorn workers we launched
+ps -aef | grep -i gunicorn
+
+# Make the command a service 
+cd /etc/systemd/system/
+sudo nano api.service
+
+# Paste there the following:
+
+[Unit]
+Description=demo fastapi application
+After=network.target
+
+[Service]
+User=gg
+Group=gg
+WorkingDirectory=/home/gg/app/src/
+Environment="PATH=/home/gg/app/venv/bin"
+EnvironmentFile=/home/gg/.env
+ExecStart=/home/gg/app/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+[Install]
+WantedBy=multi-user.target
+
+
+# ------------------------------------------
+systemctl start api
+systemctl status api
+
+# Make the service start upon reboot
+systemctl enable api
+
+
+# Web Server that receives requests and act as a proxy
+# Using nginx
+
+# To use https or http requests
+
+sudo apt install nginx -y
+systemctl start nginx
+
+cd /etc/nginx/sites-available/
+sudo nano default
+
+# Modify this part
+
+location / {
+                proxy_pass http://localhost:8000;
+                proxy_http_version 1.1;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $http_host;
+                proxy_set_header X-NginX-Proxy true;
+                proxy_redirect off;
+        }
+
+# ---------------------------------------------
+systemctl restart nginx
+systemctl enable nginx
+
+# Set up https
+# Need a domain name though
+
+# Skipped
+
+# Set up a firewall
+sudo ufw status
+
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw allow ssh
+# Postgres
+sudo ufw allow 5432
+ 
+# Activate the firewall
+sudo ufw enable
+
+# To delete a rule
+sudo ufw delete allow 5432
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
