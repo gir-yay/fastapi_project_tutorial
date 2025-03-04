@@ -41,3 +41,6 @@ taskkill /PID 24508  /F
 
 #### Build a docker image
  docker build -t fastapi . 
+
+#### Docker compose
+docker-compose -f docker-compose-dev.yml up -d
