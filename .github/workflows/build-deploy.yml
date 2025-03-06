@@ -12,9 +12,9 @@ jobs:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       ALGORITHM: ${{ vars.ALGORITHM }}
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
-      DATABASE_URL: 127.0.0.1
+      DATABASE_URL: localhost
       DATABASE_PORT: 5432
-      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}_test
       DATABASE_ROOT_USER: ${{ secrets.DATABASE_ROOT_USER }}
       DATABASE_ROOT_PASSWORD: ${{ secrets.DATABASE_ROOT_PASSWORD }}
 
