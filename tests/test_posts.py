@@ -14,7 +14,7 @@ def test_unauthorized_create_post(client):
 
 def test_get_one_post(authorized_client,test_create_post):
     res = authorized_client.get("/posts/1")
-    print(res.json())
+    post = schemas.PostResponse(**res.json())
     assert res.status_code == 200
 
 
