@@ -14,7 +14,7 @@ jobs:
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
       DATABASE_URL: localhost
       DATABASE_PORT: 5432
-      DATABASE_NAME: fastapi_db
+      DATABASE_NAME: fastapi_db_test
       DATABASE_ROOT_USER: ${{ secrets.DATABASE_ROOT_USER }}
       DATABASE_ROOT_PASSWORD: ${{ secrets.DATABASE_ROOT_PASSWORD }}
 
