@@ -19,7 +19,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def session():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -33,7 +33,7 @@ def session():
 
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client(session):
     def override_get_db():
         try:
@@ -61,7 +61,7 @@ def test_user(client):
     return new_user
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def token(test_user):
     return create_jwt_token(data={"user_id": test_user['id']})
 
@@ -74,8 +74,15 @@ def authorized_client(client, token):
     }
     return client
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_create_post(authorized_client, test_user):
     res = authorized_client.post("/posts", json={"title": "Harry Potter", "content":"A story created by JK Rowling", "user_id": test_user['id']})
     #new_post = schemas.PostResponse(**res.json())
+    assert res.status_code == 201
+
+
+@pytest.fixture
+def test_create_post(authorized_client):
+    res = authorized_client.post("/posts", json={"title": "Harry Potter", "content":"A story created by JK Rowling"})
+    print(res.json())
     assert res.status_code == 201
