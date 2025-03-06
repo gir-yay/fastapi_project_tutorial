@@ -52,6 +52,7 @@ jobs:
       - name: test with pytest
         run: |
           pip install pytest
+          sleep 10
           pytest
       
       
