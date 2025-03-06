@@ -5,6 +5,18 @@ on:
         - "main"
 jobs:
   job1:
+    environment:
+      name: testing
+      
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ALGORITHM: ${{ vars.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      DATABASE_URL: 127.0.0.1
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+      DATABASE_ROOT_USER: ${{ secrets.DATABASE_ROOT_USER }}
+      DATABASE_ROOT_PASSWORD: ${{ secrets.DATABASE_ROOT_PASSWORD }}
     runs-on: ubuntu-latest
     steps:
       - name: checking the repository
@@ -20,6 +32,14 @@ jobs:
       
       - name: installing requirements
         run: pip install -r requirements.txt
+
+      - name: test with pytest
+        run: |
+          pip install pytest
+          pytest --disable-warnings -v -s
+      
+      
+
 
         
         
