@@ -12,8 +12,8 @@ from app.database import get_db, Base
 
 from app.oauth2 import create_jwt_token
 
-#SQLALCHEMY_DATABASE_URL = "postgresql://user:secret@localhost:5432/fastapi_test"
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_ROOT_USER}:{settings.DATABASE_ROOT_PASSWORD}@{settings.DATABASE_URL}:{settings.DATABASE_PORT}/fastapi_db_test"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:secret@localhost:5432/fastapi_db_test"
+#SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_ROOT_USER}:{settings.DATABASE_ROOT_PASSWORD}@{settings.DATABASE_URL}:{settings.DATABASE_PORT}/fastapi_db_test"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
