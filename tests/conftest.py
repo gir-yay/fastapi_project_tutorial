@@ -10,6 +10,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from app.config import settings
 from app.database import get_db, Base
 
+from app.oauth2 import create_jwt_token
+
 #SQLALCHEMY_DATABASE_URL = "postgresql://user:secret@localhost:5432/fastapi_test"
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_ROOT_USER}:{settings.DATABASE_ROOT_PASSWORD}@{settings.DATABASE_URL}:{settings.DATABASE_PORT}/{settings.DATABASE_NAME}_test"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
@@ -17,7 +19,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def session():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -31,7 +33,7 @@ def session():
 
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def client(session):
     def override_get_db():
         try:
@@ -57,3 +59,23 @@ def test_user(client):
     new_user = res.json()
     new_user["password"] = user_data["password"]
     return new_user
+
+
+@pytest.fixture
+def token(test_user):
+    return create_jwt_token(data={"user_id": test_user['id']})
+
+
+@pytest.fixture
+def authorized_client(client, token):
+    client.headers = {
+        **client.headers ,
+        "Authorization": f"Bearer {token}"
+    }
+    return client
+
+@pytest.fixture
+def test_create_post(authorized_client, test_user):
+    res = authorized_client.post("/posts", json={"title": "Harry Potter", "content":"A story created by JK Rowling", "user_id": test_user['id']})
+    #new_post = schemas.PostResponse(**res.json())
+    assert res.status_code == 201
